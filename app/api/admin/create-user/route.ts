@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getSession } from "@/lib/session"
 import { NextResponse } from "next/server"
-import { randomBytes } from "crypto"
+import { randomUUID } from "crypto"
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const { data: newUser, error: profileError } = await supabase
       .from("profiles")
       .insert({
-        id: randomBytes(16).toString("hex"), // Generate random ID
+        id: randomUUID(), // Generate valid UUID
         username,
         password_hash: password, // In production, hash this properly
         full_name: fullName,

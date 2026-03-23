@@ -89,6 +89,7 @@ export default async function FolderPage({
         {/* File Manager */}
         <FileManagerClient 
           patientId={patientId} 
+          patient={patient}
           initialFolders={folders || []} 
           initialFiles={files || []} 
           currentFolderId={folderId}

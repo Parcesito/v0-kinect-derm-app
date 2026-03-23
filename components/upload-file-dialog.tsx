@@ -56,13 +56,24 @@ export function UploadFileDialog({ patientId, folderId }: UploadFileDialogProps)
       })
 
       // Upload goes browser → Vercel Blob directly, bypassing the 4.5MB serverless limit
-      await upload(`patients/${patientId}/${Date.now()}_${file.name}`, file, {
+      const blob = await upload(`patients/${patientId}/${Date.now()}_${file.name}`, file, {
         access: "public",
         handleUploadUrl: "/api/files/upload",
         clientPayload,
         onUploadProgress: ({ percentage }) => {
           setUploadProgress(Math.round(percentage))
         },
+      })
+
+      // NEW: Manual sync to ensure metadata is saved in local development
+      // where onUploadCompleted might fail to reach localhost
+      await fetch("/api/files/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blob,
+          metadata: JSON.parse(clientPayload),
+        }),
       })
 
       toast({

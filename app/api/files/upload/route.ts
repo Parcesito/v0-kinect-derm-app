@@ -23,7 +23,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         }
 
         return {
-          allowedContentTypes: ["*/*"],
+          allowedContentTypes: ["application/octet-stream", "model/ply", "text/plain"],
           maximumSizeInBytes: 200 * 1024 * 1024, // 200MB
           tokenPayload: clientPayload ?? "",
         }
