@@ -87,15 +87,15 @@ function PlyMesh({ url }: { url: string }) {
 
   const material = hasVertexColors
     ? new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        roughness: 0.7,
-        metalness: 0.0,
-      })
+      vertexColors: true,
+      roughness: 0.7,
+      metalness: 0.0,
+    })
     : new THREE.MeshStandardMaterial({
-        color: "#d4a574",
-        roughness: 0.7,
-        metalness: 0.0,
-      })
+      color: "#d4a574",
+      roughness: 0.7,
+      metalness: 0.0,
+    })
 
   return (
     <mesh ref={meshRef} geometry={geometry} material={material} castShadow receiveShadow />
@@ -160,7 +160,7 @@ export function PlyViewer({ file, patient, open, onClose }: PlyViewerProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] p-0 gap-0 flex flex-col overflow-hidden">
+      <DialogContent className="max-w-[80vw] w-[80vw] sm:max-w-none h-[85vh] p-0 gap-0 flex flex-col overflow-hidden">
         {/* Accessible title (visually hidden is fine here) */}
         <DialogTitle className="sr-only">Visualización 3D – {file.filename}</DialogTitle>
 
@@ -252,18 +252,24 @@ export function PlyViewer({ file, patient, open, onClose }: PlyViewerProps) {
             {/* Patient */}
             <div className="px-5 py-4 border-b">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Paciente</p>
-              <p className="font-bold text-slate-900 text-lg leading-tight">
-                {patient.first_name} {patient.last_name}
-              </p>
-              <p className="text-sm text-slate-600 mt-1">{calculateAge(patient.date_of_birth)} años</p>
-              {patient.identification_number && (
-                <p className="text-sm text-slate-500 mt-0.5">ID: {patient.identification_number}</p>
-              )}
-              {patient.email && (
-                <p className="text-sm text-slate-500 mt-0.5 truncate">{patient.email}</p>
-              )}
-              {patient.phone && (
-                <p className="text-sm text-slate-500 mt-0.5">{patient.phone}</p>
+              {patient ? (
+                <>
+                  <p className="font-bold text-slate-900 text-lg leading-tight">
+                    {patient.first_name} {patient.last_name}
+                  </p>
+                  <p className="text-sm text-slate-600 mt-1">{calculateAge(patient.date_of_birth)} años</p>
+                  {patient.identification_number && (
+                    <p className="text-sm text-slate-500 mt-0.5">ID: {patient.identification_number}</p>
+                  )}
+                  {patient.email && (
+                    <p className="text-sm text-slate-500 mt-0.5 truncate">{patient.email}</p>
+                  )}
+                  {patient.phone && (
+                    <p className="text-sm text-slate-500 mt-0.5">{patient.phone}</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-slate-400 italic">Información del paciente no disponible</p>
               )}
             </div>
 
