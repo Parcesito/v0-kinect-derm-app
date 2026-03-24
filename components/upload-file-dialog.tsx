@@ -19,6 +19,16 @@ import { Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { upload } from "@vercel/blob/client"
 
+// ---- Helpers -------------------------------------------------------------
+
+function sanitizeFilename(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/[^a-zA-Z0-9.-]/g, "_") // Replace special chars with underscores
+    .replace(/_{2,}/g, "_") // Remove double underscores
+}
+
 interface UploadFileDialogProps {
   patientId: string
   folderId?: string | null
@@ -55,8 +65,12 @@ export function UploadFileDialog({ patientId, folderId }: UploadFileDialogProps)
         fileType: file.type,
       })
 
+      // Sanitize the filename to avoid encoding issues (accents, spaces, etc.)
+      const safeName = sanitizeFilename(file.name)
+      const blobPath = `patients/${patientId}/${Date.now()}_${safeName}`
+
       // Upload goes browser → Vercel Blob directly, bypassing the 4.5MB serverless limit
-      const blob = await upload(`patients/${patientId}/${Date.now()}_${file.name}`, file, {
+      const blob = await upload(blobPath, file, {
         access: "public",
         handleUploadUrl: "/api/files/upload",
         clientPayload,
@@ -65,16 +79,18 @@ export function UploadFileDialog({ patientId, folderId }: UploadFileDialogProps)
         },
       })
 
-      // NEW: Manual sync to ensure metadata is saved in local development
-      // where onUploadCompleted might fail to reach localhost
-      await fetch("/api/files/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          blob,
-          metadata: JSON.parse(clientPayload),
-        }),
-      })
+      // NEW: Manual sync only for local development
+      // In production (Vercel), onUploadCompleted callback handles this correctly
+      if (window.location.hostname === "localhost") {
+        await fetch("/api/files/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            blob,
+            metadata: JSON.parse(clientPayload),
+          }),
+        })
+      }
 
       toast({
         title: "Archivo cargado",
