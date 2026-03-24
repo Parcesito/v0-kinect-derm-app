@@ -1,11 +1,36 @@
 "use client"
 
-import { Suspense, useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react"
 import { Canvas, useLoader, useThree } from "@react-three/fiber"
 import { OrbitControls, Center } from "@react-three/drei"
+
+// ---- Error Boundary ------------------------------------------------------
+
+class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error("3D Viewer Error:", error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+
 import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js"
 import * as THREE from "three"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { X, RotateCcw, ZoomIn, ZoomOut } from "lucide-react"
@@ -163,6 +188,7 @@ export function PlyViewer({ file, patient, open, onClose }: PlyViewerProps) {
       <DialogContent className="max-w-[80vw] w-[80vw] sm:max-w-none h-[85vh] p-0 gap-0 flex flex-col overflow-hidden">
         {/* Accessible title (visually hidden is fine here) */}
         <DialogTitle className="sr-only">Visualización 3D – {file.filename}</DialogTitle>
+        <DialogDescription className="sr-only">Explora la reconstrucción 3D de la herida del paciente.</DialogDescription>
 
         {/* Top bar */}
         <div className="flex items-center justify-between px-5 py-3 border-b bg-white shrink-0">
@@ -192,35 +218,46 @@ export function PlyViewer({ file, patient, open, onClose }: PlyViewerProps) {
                 </Button>
               </div>
             ) : (
-              <Canvas
-                camera={{ position: [0, 0, 2], fov: 50 }}
-                shadows
-                gl={{ antialias: true }}
-                className="w-full h-full"
+              <ErrorBoundary
+                fallback={
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                    <p className="text-sm">Error crítico en el motor 3D.</p>
+                    <p className="text-xs mt-2 max-w-[200px]">Es posible que el archivo esté corrupto o haya un problema de memoria.</p>
+                    <Button variant="outline" size="sm" className="mt-4" onClick={() => window.location.reload()}>
+                      Recargar página
+                    </Button>
+                  </div>
+                }
               >
-                {/* Lighting */}
-                <ambientLight intensity={0.6} />
-                <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
-                <directionalLight position={[-5, -5, -5]} intensity={0.3} />
+                <Canvas
+                  camera={{ position: [0, 0, 2], fov: 50 }}
+                  shadows
+                  gl={{ antialias: true }}
+                  className="w-full h-full"
+                  onError={() => setLoadError(true)}
+                >
+                  {/* Lighting */}
+                  <ambientLight intensity={0.6} />
+                  <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
+                  <directionalLight position={[-5, -5, -5]} intensity={0.3} />
 
-                {/* Model */}
-                <Suspense fallback={<LoadingMesh />}>
-                  <Center>
-                    <PlyMesh url={file.blob_url} />
-                  </Center>
-                </Suspense>
+                  {/* Model */}
+                  <Suspense fallback={<LoadingMesh />}>
+                    <Center>
+                      <PlyMesh url={file.blob_url} />
+                    </Center>
+                  </Suspense>
 
-                {/* Camera helpers */}
-                <CameraResetter trigger={resetTrigger} />
-                <OrbitControls
-                  ref={controlsRef}
-                  makeDefault
-                  enableDamping
-                  dampingFactor={0.05}
-                  minDistance={0.1}
-                  maxDistance={1000}
-                />
-              </Canvas>
+                  {/* Helpers */}
+                  <CameraResetter trigger={resetTrigger} />
+                  <OrbitControls
+                    ref={controlsRef}
+                    makeDefault
+                    minDistance={0.1}
+                    maxDistance={10}
+                  />
+                </Canvas>
+              </ErrorBoundary>
             )}
 
             {/* Viewport controls overlay */}
