@@ -88,29 +88,7 @@ export default function LoginPage() {
               </div>
             </form>
 
-            <div className="mt-6 rounded-lg bg-cyan-50 p-4">
-              <h3 className="text-sm font-semibold text-cyan-900 mb-2">Usuarios de Prueba:</h3>
-              <div className="space-y-2 text-xs text-cyan-800">
-                <div className="flex justify-between items-center gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <strong>Admin de Organización</strong>
-                    <span className="font-mono">admin / test123</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <strong>Gestor de Pacientes</strong>
-                    <span className="font-mono">pacientes / test123</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <strong>Doctor</strong>
-                    <span className="font-mono">doctor / test123</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </CardContent>
         </Card>
       </div>
